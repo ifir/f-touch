@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<meta name="viewport" content="width=device-width, initial-scale=0.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, minimal-ui" />
+</head>
+<body id="body">
+	<button id="btn">测试</button>
+	<script type="text/javascript" src="./tap.js"></script>
+	<script type="text/javascript">
+	window.onload = function(){
+		var el = document.getElementById('body'),
+			btn = document.getElementById('btn'),
+    	tap = new Tap(el);
+		btn.addEventListener('tap', onTap, false);
+
+		function onTap (e) {
+		    alert(1)
+		}
+	}
+
+	</script>
+</body>
+</html>
