@@ -11,49 +11,47 @@
 })(typeof window !== 'undefined' ? window : this, function (window, document) {
 	'use strict';
 
-	function Ftouch(ele){
-		var _this = this;
-		_this.ele = typeof ele === 'object' ? ele : document.querySelector(ele);
-		_this.startX = 0;
-		_this.startY = 0;
-		_this.moved = false;
-		_this.isTouch = false;
-		//addEventListener
-		_this.ele.addEventListener('touchstart', _this, false);
-		_this.ele.addEventListener('mousedown', _this, false);
+	var utils = {};
+	utils.userAgent = function(){
+		if(navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)){
 
-	}
+		}else{
 
-	Ftouch.prototype = {
-		constructor: Ftouch,
-		start: function(e){
-			if(e.type === 'touchstart'){
-
-			}else if(e.type === 'mousedown'){
-
-			}
-		},
-		move: function(){
-
-		},
-		end: function(){
-
-		},
-		cancel: function(){
-
-		},
-
-		destroy: function(){
-			this.ele.removeEventListener('touchstart', this, false);
-	        this.ele.removeEventListener('touchmove', this, false);
-	        this.ele.removeEventListener('touchend', this, false);
-	        this.ele.removeEventListener('touchcancel', this, false);
-	        this.ele.removeEventListener('mousedown', this, false);
-	        this.ele.removeEventListener('mouseup', this, false);
-	        this.ele.removeEventListener('mousemove', this, false);
 		}
 	}
 
+	function Ftouch(){
+		return new Ftouch.fn.init();
+	}
 
-	return Ftouch;
+	Ftouch.fn = Ftouch.prototype = {
+		constructor: Ftouch,
+		init : function(e){
+			var _this = this;
+			this.CT = 'tap'; // 是click还是tap
+			document.documentElement.addEventListener('touchstart',this.fireEvent.bind(this));
+		},
+		// userAgent: function(){
+		// 	if(navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)){
+		// 		this.CT = 'tap';
+		// 	}else{
+		// 		this.CT = 'click';
+		// 	}
+		// },
+		createEvent: function(e){
+			var evt = new window.CustomEvent("tap", {
+				bubbles: true,
+				cancelable: true
+			});
+			return evt;
+		},
+		fireEvent: function(e){
+			e.target.dispatchEvent(this.createEvent());
+		}
+	}
+
+	Ftouch.fn.init.prototype = Ftouch.prototype;
+
+
+	return Ftouch();
 })

@@ -7,19 +7,34 @@
 </head>
 <body id="body">
 	<button id="btn">测试</button>
-	<script type="text/javascript" src="./tap.js"></script>
+	<button id="btn2">测试2</button>
+	<!-- <script src="http://cdn.bootcss.com/jquery/3.0.0-beta1/jquery.min.js"></script>-->
+	<!-- <script type="text/javascript" src="./tap.js"></script>  -->
+	<script type="text/javascript" src="./f-touch.js"></script>
 	<script type="text/javascript">
 	window.onload = function(){
-		var el = document.getElementById('body'),
-			btn = document.getElementById('btn'),
-    	tap = new Tap(el);
-		btn.addEventListener('tap', onTap, false);
 
-		function onTap (e) {
-		    alert(1)
-		}
+		document.getElementById('btn').addEventListener("tap", function(e) {
+		    console.log(1);
+		});
+		document.getElementById('btn2').addEventListener("tap", function(e) {
+		    console.log(2);
+		});
+		// // // 创建
+		// // var evt = document.createEvent("HTMLEvents");
+		// // // 初始化
+		// // evt.initEvent("alert", true, true);
+		// var evt = new window.CustomEvent("tap", {
+		// 		bubbles: true,
+		// 		cancelable: true
+		// 	});
+
+		// // 触发, 即弹出文字
+		// if(document.getElementById('btn').dispatchEvent(evt) ){
+		// 	console.log(1);
+		// }
+
 	}
-
 	</script>
 </body>
 </html>

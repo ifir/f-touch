@@ -1,142 +1,157 @@
-/*!
- * tap.js
- * Copyright (c) 2015 Alex Gibson 
- * https://github.com/alexgibson/tap.js/
- * Released under MIT license
- */
+(function( window ) {
+    var Tap = {};
 
-/* global define, module */
-(function (global, factory) {
-    'use strict';
-    if (typeof define === 'function' && define.amd) {
-        define(function () {
-            return (global.Tap = factory(global, global.document));
-        });
-    } else if (typeof exports === 'object') {
-        module.exports = factory(global, global.document);
-    } else {
-        global.Tap = factory(global, global.document);
-    }
-}(typeof window !== 'undefined' ? window : this, function (window, document) {
-    'use strict';
+    var utils = {};
 
-    function Tap(el) {
-        this.el = typeof el === 'object' ? el : document.getElementById(el);
-        this.moved = false; //flags if the finger has moved
-        this.startX = 0; //starting x coordinate
-        this.startY = 0; //starting y coordinate
-        this.hasTouchEventOccured = false; //flag touch event
-        this.el.addEventListener('touchstart', this, false);
-        this.el.addEventListener('mousedown', this, false);
-    }
-    //判断是否是鼠标左键
-    // return true if left click is in the event, handle many browsers
-    Tap.prototype.leftButton = function(event) {
-        // modern & preferred:  MSIE>=9, Firefox(all)
-        if ('buttons' in event) {
-           // https://developer.mozilla.org/docs/Web/API/MouseEvent/buttons
-           return event.buttons === 1;
-        } else {
-           return 'which' in event ?
-               // 'which' is well defined (and doesn't exist on MSIE<=8)
-               // https://developer.mozilla.org/docs/Web/API/MouseEvent/which
-               event.which === 1 :
-               // for MSIE<=8 button is 1=left (0 on all other browsers)
-               // https://developer.mozilla.org/docs/Web/API/MouseEvent/button
-               event.button === 1;
-        }
-        return false;
-    };
-
-    Tap.prototype.start = function(e) {
-        if (e.type === 'touchstart') {
-
-            this.hasTouchEventOccured = true;
-            this.el.addEventListener('touchmove', this, false);
-            this.el.addEventListener('touchend', this, false);
-            this.el.addEventListener('touchcancel', this, false);
-
-        } else if (e.type === 'mousedown' && this.leftButton(e)) {
-
-            this.el.addEventListener('mousemove', this, false);
-            this.el.addEventListener('mouseup', this, false);
-        }
-
-        this.moved = false;
-        this.startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-        this.startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-    };
-
-    Tap.prototype.move = function(e) {
-        //if finger moves more than 10px flag to cancel
-        var x = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-        var y = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-        if (Math.abs(x - this.startX) > 10 || Math.abs(y - this.startY) > 10) {
-            this.moved = true;
+    utils.attachEvent = function(element, eventName, callback) {
+        if ('addEventListener' in window) {
+            return element.addEventListener(eventName, callback, false);
         }
     };
 
-    Tap.prototype.end = function(e) {
-        var evt;
+    utils.fireFakeEvent = function(e, eventName) {
+        if (document.createEvent) {
+            return e.target.dispatchEvent(utils.createEvent(eventName));
+        }
+    };
 
-        this.el.removeEventListener('touchmove', this, false);
-        this.el.removeEventListener('touchend', this, false);
-        this.el.removeEventListener('touchcancel', this, false);
-        this.el.removeEventListener('mouseup', this, false);
-        this.el.removeEventListener('mousemove', this, false);
+    utils.createEvent = function(name) {
+        if (document.createEvent) {
+            var evnt = window.document.createEvent('HTMLEvents');
 
-        if (!this.moved) {
-            //create custom event
-            try {
-                evt = new window.CustomEvent('tap', {
-                    bubbles: true,
-                    cancelable: true
-                });
-            } catch (e) {
-                evt = document.createEvent('Event');
-                evt.initEvent('tap', true, true);
+            evnt.initEvent(name, true, true);
+            evnt.eventName = name;
+
+            return evnt;
+        }
+    };
+
+    utils.getRealEvent = function(e) {
+        if (e.originalEvent && e.originalEvent.touches && e.originalEvent.touches.length) {
+            return e.originalEvent.touches[0];
+        } else if (e.touches && e.touches.length) {
+            return e.touches[0];
+        }
+
+        return e;
+    };
+
+    var eventMatrix = [{
+        // Touchable devices
+        test: ('propertyIsEnumerable' in window || 'hasOwnProperty' in document) && (window.propertyIsEnumerable('ontouchstart') || document.hasOwnProperty('ontouchstart') || window.hasOwnProperty('ontouchstart')),
+        events: {
+            start: 'touchstart',
+            move: 'touchmove',
+            end: 'touchend'
+        }
+    }, {
+        // IE10
+        test: window.navigator.msPointerEnabled,
+        events: {
+            start: 'MSPointerDown',
+            move: 'MSPointerMove',
+            end: 'MSPointerUp'
+        }
+    }, {
+        // Modern device agnostic web
+        test: window.navigator.pointerEnabled,
+        events: {
+            start: 'pointerdown',
+            move: 'pointermove',
+            end: 'pointerup'
+        }
+    }];
+
+    Tap.options = {
+        eventName: 'tap',
+        fingerMaxOffset: 11
+    };
+
+    var attachDeviceEvent, init, handlers, deviceEvents,
+        coords = {};
+
+    attachDeviceEvent = function(eventName) {
+        return utils.attachEvent(document.documentElement, deviceEvents[eventName], handlers[eventName]);
+    };
+
+    handlers = {
+        start: function(e) {
+            e = utils.getRealEvent(e);
+
+            coords.start = [e.pageX, e.pageY];
+            coords.offset = [0, 0];
+        },
+
+        move: function(e) {
+            if (!coords.start && !coords.move) {
+                return false;
             }
 
-            //prevent touchend from propagating to any parent
-            //nodes that may have a tap.js listener attached
-            e.stopPropagation();
+            e = utils.getRealEvent(e);
 
-            // dispatchEvent returns false if any handler calls preventDefault,
-            if (!e.target.dispatchEvent(evt)) {
-                // in which case we want to prevent clicks from firing.
+            coords.move = [e.pageX, e.pageY];
+            coords.offset = [
+                Math.abs(coords.move[0] - coords.start[0]),
+                Math.abs(coords.move[1] - coords.start[1])
+            ];
+        },
+
+        end: function(e) {
+            e = utils.getRealEvent(e);
+
+            if (coords.offset[0] < Tap.options.fingerMaxOffset && coords.offset[1] < Tap.options.fingerMaxOffset && !utils.fireFakeEvent(e, Tap.options.eventName)) {
+                // Windows Phone 8.0 trigger `click` after `pointerup` firing
+                // #16 https://github.com/pukhalski/tap/issues/16
+                if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled) {
+                    var preventDefault = function(clickEvent) {
+                        clickEvent.preventDefault();
+                        e.target.removeEventListener('click', preventDefault);
+                    };
+
+                    e.target.addEventListener('click', preventDefault, false);
+                }
+
                 e.preventDefault();
             }
+
+            coords = {};
+        },
+
+        click: function(e) {
+            if (!utils.fireFakeEvent(e, Tap.options.eventName)) {
+                return e.preventDefault();
+            }
         }
     };
 
-    Tap.prototype.cancel = function() {
-        this.hasTouchEventOccured = false;
-        this.moved = false;
-        this.startX = 0;
-        this.startY = 0;
-    };
+    init = function() {
+        var i = 0;
 
-    Tap.prototype.destroy = function() {
-        this.el.removeEventListener('touchstart', this, false);
-        this.el.removeEventListener('touchmove', this, false);
-        this.el.removeEventListener('touchend', this, false);
-        this.el.removeEventListener('touchcancel', this, false);
-        this.el.removeEventListener('mousedown', this, false);
-        this.el.removeEventListener('mouseup', this, false);
-        this.el.removeEventListener('mousemove', this, false);
-    };
+        for (; i < eventMatrix.length; i++) {
+            if (eventMatrix[i].test) {
+                deviceEvents = eventMatrix[i].events;
 
-    Tap.prototype.handleEvent = function(e) {
-        switch (e.type) {
-            case 'touchstart': this.start(e); break;
-            case 'touchmove': this.move(e); break;
-            case 'touchend': this.end(e); break;
-            case 'touchcancel': this.cancel(e); break;
-            case 'mousedown': this.start(e); break;
-            case 'mouseup': this.end(e); break;
-            case 'mousemove': this.move(e); break;
+                attachDeviceEvent('start');
+                attachDeviceEvent('move');
+                attachDeviceEvent('end');
+
+                break;
+            }
         }
+
+        return utils.attachEvent(document.documentElement, 'click', handlers.click);
     };
 
-    return Tap;
-}));
+    utils.attachEvent(window, 'load', init);
+
+    if (typeof define === 'function' && define.amd) {
+        define(function() {
+            init();
+
+            return Tap;
+        });
+    } else {
+        window.Tap = Tap;
+    }
+
+})( window );
