@@ -11,57 +11,12 @@
 })(typeof window !== 'undefined' ? window : this, function (window, document) {
 	'use strict';
 
-	var utils = {};
-	utils.userAgent = function(){
-		if(navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)){
-
-		}else{
-
-		}
-	}
-
 	function Ftouch(){
 		return new Ftouch.fn.init();
 	}
 
 	Ftouch.fn = Ftouch.prototype = {
 		constructor: Ftouch,
-		// userAgent: function(){
-		// 	if(navigator.userAgent.match(/(iPhone|iPod|Android|ios)/i)){
-		// 		this.CT = 'tap';
-		// 	}else{
-		// 		this.CT = 'click';
-		// 	}
-		// },
-		moreEvens:[
-			{
-				// Touchable devices
-				test: ('propertyIsEnumerable' in window || 'hasOwnProperty' in document) && (window.propertyIsEnumerable('ontouchstart') || document.hasOwnProperty('ontouchstart') || window.hasOwnProperty('ontouchstart')),
-				events: {
-					start: 'touchstart',
-					move: 'touchmove',
-					end: 'touchend'
-				}
-			},
-			{
-				// IE10
-				test: window.navigator.msPointerEnabled,
-				events: {
-					start: 'MSPointerDown',
-					move: 'MSPointerMove',
-					end: 'MSPointerUp'
-				}
-			},
-			{
-				// Modern device agnostic web
-				test: window.navigator.pointerEnabled,
-				events: {
-					start: 'pointerdown',
-					move: 'pointermove',
-					end: 'pointerup'
-				}
-			}
-	    ],
 		init : function(e){
 			var _this = this;
 			_this.moveSwitch = false;
@@ -90,14 +45,20 @@
 			}
 		},
 		createEvent: function(eventName){
-			var evt = new window.CustomEvent(eventName, {
-				bubbles: true,
-				cancelable: true
-			});
+			try{
+				var evt = new window.CustomEvent(eventName, {
+					bubbles: true,
+					cancelable: true
+				});
+			}catch(err){
+				var evt = window.document.createEvent('HTMLEvents');
+				evt.initEvent(eventName, true, true);
+			}
+
+			evt.eventName = eventName;
 			return evt;
 		},
 		fireEvent: function(e, eventName){
-			
 			e.target.dispatchEvent(this.createEvent(eventName));
 		},
 		start: function(e){
@@ -112,34 +73,84 @@
 			if(!this.moveSwitch) return;
 			_this.offsetX = e.touches[0].pageX - _this.startX;
 			_this.offsetY = e.touches[0].pageY - _this.startY;
-			//console.log(_this.offsetX)
-			// if(){
-
-			// }
-			if( Math.abs(_this.offsetX) > 11 || Math.abs(_this.offsetY) > 11 ){
-				this.isMove = true;
-			}else{
-				this.isMove = false;
-			}
-
+			_this.isMove = (Math.abs(_this.offsetX) > 11 || Math.abs(_this.offsetY)) > 11 ? true : false;
 		},
 		end: function(e){
 			var _this = this;
 			_this.endTime = Date.now();
 			var touchTime = _this.endTime - _this.startTime;
-			//console.log(touchTime)
-			// if(touchTime < 1000){
-			// 	this.fireEvent(e, 'tap');
 			if(!_this.isMove){
-				touchTime < 500 && this.fireEvent(e, 'tap');
-				touchTime > 500 && this.fireEvent(e, 'longtap');
+				touchTime < 500 && _this.fireEvent(e, 'tap');
+				touchTime > 500 && _this.fireEvent(e, 'longtap');
+			}else{
+				// if(_this.offsetX > -30){
+				// 	console.log('left')
+				// 	_this.fireEvent(e, 'swipeLeft');
+				// }else if(_this.offsetX > 30){
+				// 	_this.fireEvent(e, 'swipeRight');
+				// }
+				// var dir = _this.fingerDirection();
+				// switch(dir){
+				// 	case 0:
+				// 		console.log("没滑动");
+				// 		break;
+				// 	case 1:
+				// 		console.log("向上");
+				// 		break;
+				// 	case 2:
+				// 		console.log("向下");
+				// 		break;
+				// 	case 3:
+				// 		console.log("向右");
+				// 		break;
+				// 	case 4:
+				// 		console.log("向左");
+				// 		break;
+				// 	default:
+				// }
+
 			}
+				// console.log(Math.abs(_this.offsetX))
+				// console.log(Math.abs(_this.offsetY))
+			// _this.startX = 0;
+			// _this.startY = 0;
 			_this.isMove = false;
 			_this.moveSwitch = false;
-			//this.fireEvent(e, 'tap');
-		}
-	}
+		},
+		// fingerDirection: function(){
+		// 	var _this = this;
+		// 	var dx = _this.offsetX;
+		// 	var dy = _this.offsetY;
+		// 	var result = 0;
 
+		// 	//如果滑动距离太短
+		// 	if(Math.abs(dx) < 11 && Math.abs(dy) < 11) {
+		// 		return result;
+		// 	}
+
+		// 	var angle = _this.angle(dx, dy);
+		// 	//left
+		// 	if(angle >= -45 && angle < 45) {
+		// 		result = 4;
+		// 	//up
+		// 	}else if (angle >= 45 && angle < 135) {
+		// 		result = 1;
+		// 	//down
+		// 	}else if (angle >= -135 && angle < -45) {
+		// 		result = 2;
+		// 	}
+		// 	//left
+		// 	else if ((angle >= 135 && angle <= 180) || (angle >= -180 && angle < -135)) {
+		// 		result = 3;
+		// 	}
+
+		// 	return result;
+		// },
+		// angle: function(dx, dy) {
+  //             return Math.atan2(dy, dx) * 180 / Math.PI;
+		// }
+	}
+// swipeLeft
 	Ftouch.fn.init.prototype = Ftouch.prototype;
 
 
