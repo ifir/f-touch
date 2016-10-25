@@ -15,11 +15,14 @@
 	window.onload = function(){
 
 		document.getElementById('btn').addEventListener("tap", function(e) {
-		    console.log(1);
+		    console.log(e);
 		});
-		document.getElementById('btn2').addEventListener("tap", function(e) {
-		    console.log(2);
+		document.getElementById('btn2').addEventListener("longtap", function(e) {
+		    alert(1)
 		});
+		// document.getElementById('btn2').addEventListener("tap", function(e) {
+		//     console.log(2);
+		// });
 		// // // 创建
 		// // var evt = document.createEvent("HTMLEvents");
 		// // // 初始化
