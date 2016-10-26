@@ -74,7 +74,6 @@
 			_this.offsetX = e.touches[0].pageX - _this.startX;
 			_this.offsetY = e.touches[0].pageY - _this.startY;
 			_this.isMove = (Math.abs(_this.offsetX) > 11 || Math.abs(_this.offsetY) > 11) ? true : false;
-
 		},
 		end: function(e){
 			var _this = this;
@@ -84,23 +83,10 @@
 				touchTime < 500 && _this.fireEvent(e, 'tap');
 				touchTime > 500 && _this.fireEvent(e, 'longtap');
 			}else{
-				if ( Math.abs(_this.offsetX) > Math.abs(_this.offsetY) && _this.offsetX > 0 ) {
-					//alert("left 2 right");
-					_this.fireEvent(e, 'swipeRight');
-				}else if ( Math.abs(_this.offsetX) > Math.abs(_this.offsetY) && _this.offsetX < 0 ) {
-					//alert("right 2 left");
-					_this.fireEvent(e, 'swipeLeft');
-				}else if ( Math.abs(_this.offsetY) > Math.abs(_this.offsetX) && _this.offsetY > 0) {
-					//alert("top 2 bottom");
-				}else if ( Math.abs(_this.offsetY) > Math.abs(_this.offsetX) && _this.offsetY < 0 ) {
-					//alert("bottom 2 top");
-				}else{
-					//alert("just touch");
-				}
-
+				var X = Math.abs(_this.offsetX), Y = Math.abs(_this.offsetY);
+				X > 30 && X > Y && _this.offsetX < 0 && _this.fireEvent(e, 'swipeLeft');
+				X > 30 && X > Y && _this.offsetX > 0 && _this.fireEvent(e, 'swipeRight');
 			}
-				// console.log(Math.abs(_this.offsetX))
-				// console.log(Math.abs(_this.offsetY))
 			_this.startX = 0;
 			_this.startY = 0;
 			_this.isMove = false;
