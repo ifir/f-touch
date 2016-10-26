@@ -6,8 +6,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=0.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0, minimal-ui" />
 </head>
 <body id="body">
-	<button id="btn">测试</button>
-	<button id="btn2">测试2</button>
+	<button id="btn">tap</button>
+	<button id="btn2">longtap</button>
 	<div id="box" style="width:300px;height:300px;background:purple;">
 		
 	</div>
@@ -18,13 +18,16 @@
 	window.onload = function(){
 
 		document.getElementById('btn').addEventListener("tap", function(e) {
-		    console.log(e);
+		    alert('tap')
 		});
 		document.getElementById('btn2').addEventListener("longtap", function(e) {
-		    alert(1)
+		    alert('longtap')
 		});
 		document.getElementById('box').addEventListener("swipeLeft", function(e) {
-		    alert('swipeLeft')
+		    alert('swipeLeft');
+		});
+		document.getElementById('box').addEventListener("swipeRight", function(e) {
+		    alert('swipeRight');
 		});
 		// $('#btn').on('longtap', function(e){
 		// 	console.log(e);

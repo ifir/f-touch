@@ -1,8 +1,8 @@
 ;(function(global, factory){
 	if (typeof define === 'function' && define.amd) {
-        define(function () {
-            return (global.Ftouch = factory(global, global.document));
-        });
+		define(function () {
+			return (global.Ftouch = factory(global, global.document));
+		});
     } else if (typeof exports === 'object') {
         module.exports = factory(global, global.document);
     } else {
@@ -73,7 +73,8 @@
 			if(!this.moveSwitch) return;
 			_this.offsetX = e.touches[0].pageX - _this.startX;
 			_this.offsetY = e.touches[0].pageY - _this.startY;
-			_this.isMove = (Math.abs(_this.offsetX) > 11 || Math.abs(_this.offsetY)) > 11 ? true : false;
+			_this.isMove = (Math.abs(_this.offsetX) > 11 || Math.abs(_this.offsetY) > 11) ? true : false;
+
 		},
 		end: function(e){
 			var _this = this;
@@ -83,74 +84,29 @@
 				touchTime < 500 && _this.fireEvent(e, 'tap');
 				touchTime > 500 && _this.fireEvent(e, 'longtap');
 			}else{
-				// if(_this.offsetX > -30){
-				// 	console.log('left')
-				// 	_this.fireEvent(e, 'swipeLeft');
-				// }else if(_this.offsetX > 30){
-				// 	_this.fireEvent(e, 'swipeRight');
-				// }
-				// var dir = _this.fingerDirection();
-				// switch(dir){
-				// 	case 0:
-				// 		console.log("没滑动");
-				// 		break;
-				// 	case 1:
-				// 		console.log("向上");
-				// 		break;
-				// 	case 2:
-				// 		console.log("向下");
-				// 		break;
-				// 	case 3:
-				// 		console.log("向右");
-				// 		break;
-				// 	case 4:
-				// 		console.log("向左");
-				// 		break;
-				// 	default:
-				// }
+				if ( Math.abs(_this.offsetX) > Math.abs(_this.offsetY) && _this.offsetX > 0 ) {
+					//alert("left 2 right");
+					_this.fireEvent(e, 'swipeRight');
+				}else if ( Math.abs(_this.offsetX) > Math.abs(_this.offsetY) && _this.offsetX < 0 ) {
+					//alert("right 2 left");
+					_this.fireEvent(e, 'swipeLeft');
+				}else if ( Math.abs(_this.offsetY) > Math.abs(_this.offsetX) && _this.offsetY > 0) {
+					//alert("top 2 bottom");
+				}else if ( Math.abs(_this.offsetY) > Math.abs(_this.offsetX) && _this.offsetY < 0 ) {
+					//alert("bottom 2 top");
+				}else{
+					//alert("just touch");
+				}
 
 			}
 				// console.log(Math.abs(_this.offsetX))
 				// console.log(Math.abs(_this.offsetY))
-			// _this.startX = 0;
-			// _this.startY = 0;
+			_this.startX = 0;
+			_this.startY = 0;
 			_this.isMove = false;
 			_this.moveSwitch = false;
-		},
-		// fingerDirection: function(){
-		// 	var _this = this;
-		// 	var dx = _this.offsetX;
-		// 	var dy = _this.offsetY;
-		// 	var result = 0;
-
-		// 	//如果滑动距离太短
-		// 	if(Math.abs(dx) < 11 && Math.abs(dy) < 11) {
-		// 		return result;
-		// 	}
-
-		// 	var angle = _this.angle(dx, dy);
-		// 	//left
-		// 	if(angle >= -45 && angle < 45) {
-		// 		result = 4;
-		// 	//up
-		// 	}else if (angle >= 45 && angle < 135) {
-		// 		result = 1;
-		// 	//down
-		// 	}else if (angle >= -135 && angle < -45) {
-		// 		result = 2;
-		// 	}
-		// 	//left
-		// 	else if ((angle >= 135 && angle <= 180) || (angle >= -180 && angle < -135)) {
-		// 		result = 3;
-		// 	}
-
-		// 	return result;
-		// },
-		// angle: function(dx, dy) {
-  //             return Math.atan2(dy, dx) * 180 / Math.PI;
-		// }
+		}
 	}
-// swipeLeft
 	Ftouch.fn.init.prototype = Ftouch.prototype;
 
 
